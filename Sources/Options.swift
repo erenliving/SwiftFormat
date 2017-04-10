@@ -140,17 +140,17 @@ public struct FormatOptions: CustomStringConvertible {
     // Doesn't really belong here, but hard to put elsewhere
     public var ignoreConflictMarkers: Bool
 
-    public init(indent: String = "    ",
+    public init(indent: String = "\t",
                 linebreak: String = "\n",
                 allowInlineSemicolons: Bool = true,
                 spaceAroundRangeOperators: Bool = true,
                 useVoid: Bool = true,
                 trailingCommas: Bool = true,
-                indentComments: Bool = true,
+                indentComments: Bool = false,
                 truncateBlankLines: Bool = true,
                 insertBlankLines: Bool = true,
                 removeBlankLines: Bool = true,
-                allmanBraces: Bool = false,
+                allmanBraces: Bool = true,
                 fileHeader: String? = nil,
                 ifdefIndent: IndentMode = .indent,
                 wrapArguments: WrapMode = .disabled,
@@ -210,36 +210,37 @@ public func inferOptions(from tokens: [Token]) -> FormatOptions {
     let formatter = Formatter(tokens)
     var options = FormatOptions()
 
-    options.indent = {
-        var indents = [(indent: String, count: Int)]()
-        func increment(_ indent: String) {
-            for (i, element) in indents.enumerated() {
-                if element.indent == indent {
-                    indents[i] = (indent, element.count + 1)
-                    return
-                }
-            }
-            indents.append((indent, 0))
-        }
-        formatter.forEach(.linebreak) { i, _ in
-            let start = formatter.startOfLine(at: i)
-            if case let .space(string) = formatter.tokens[start] {
-                if string.hasPrefix("\t") {
-                    increment("\t")
-                } else {
-                    let length = string.characters.count
-                    for i in [8, 4, 3, 2, 1] {
-                        if length % i == 0 {
-                            increment(String(repeating: " ", count: i))
-                            break
-                        }
-                    }
-                }
-            }
-        }
-        return indents.sorted(by: { $0.count > $1.count }).first.map({ $0.indent }) ?? options.indent
-    }()
-
+    options.indent = "\t"
+//	{
+//        var indents = [(indent: String, count: Int)]()
+//        func increment(_ indent: String) {
+//            for (i, element) in indents.enumerated() {
+//                if element.indent == indent {
+//                    indents[i] = (indent, element.count + 1)
+//                    return
+//                }
+//            }
+//            indents.append((indent, 0))
+//        }
+//        formatter.forEach(.linebreak) { i, _ in
+//            let start = formatter.startOfLine(at: i)
+//            if case let .space(string) = formatter.tokens[start] {
+//                if string.hasPrefix("\t") {
+//                    increment("\t")
+//                } else {
+//                    let length = string.characters.count
+//                    for i in [8, 4, 3, 2, 1] {
+//                        if length % i == 0 {
+//                            increment(String(repeating: " ", count: i))
+//                            break
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return indents.sorted(by: { $0.count > $1.count }).first.map({ $0.indent }) ?? options.indent
+//    }()
+	
     options.linebreak = {
         var cr: Int = 0, lf: Int = 0, crlf: Int = 0
         formatter.forEachToken { _, token in
@@ -329,58 +330,59 @@ public func inferOptions(from tokens: [Token]) -> FormatOptions {
         return trailing >= noTrailing
     }()
 
-    options.indentComments = {
-        var shouldIndent = true
-        var nestedComments = 0
-        var prevIndent: Int?
-        var lastTokenWasLinebreak = false
-        for token in formatter.tokens {
-            switch token {
-            case .startOfScope:
-                if token.string == "/*" {
-                    nestedComments += 1
-                }
-                prevIndent = nil
-            case .endOfScope:
-                if token.string == "*/" {
-                    if nestedComments > 0 {
-                        if lastTokenWasLinebreak {
-                            if prevIndent != nil && prevIndent! >= 2 {
-                                shouldIndent = false
-                                break
-                            }
-                            prevIndent = 0
-                        }
-                        nestedComments -= 1
-                    } else {
-                        break // might be fragment, or syntax error
-                    }
-                }
-                prevIndent = nil
-            case .space:
-                if lastTokenWasLinebreak, nestedComments > 0 {
-                    let indent = token.string.characters.count
-                    if prevIndent != nil && abs(prevIndent! - indent) >= 2 {
-                        shouldIndent = false
-                        break
-                    }
-                    prevIndent = indent
-                }
-            case .commentBody:
-                if lastTokenWasLinebreak, nestedComments > 0 {
-                    if prevIndent != nil && prevIndent! >= 2 {
-                        shouldIndent = false
-                        break
-                    }
-                    prevIndent = 0
-                }
-            default:
-                break
-            }
-            lastTokenWasLinebreak = token.isLinebreak
-        }
-        return shouldIndent
-    }()
+    options.indentComments = false
+//	{
+//        var shouldIndent = true
+//        var nestedComments = 0
+//        var prevIndent: Int?
+//        var lastTokenWasLinebreak = false
+//        for token in formatter.tokens {
+//            switch token {
+//            case .startOfScope:
+//                if token.string == "/*" {
+//                    nestedComments += 1
+//                }
+//                prevIndent = nil
+//            case .endOfScope:
+//                if token.string == "*/" {
+//                    if nestedComments > 0 {
+//                        if lastTokenWasLinebreak {
+//                            if prevIndent != nil && prevIndent! >= 2 {
+//                                shouldIndent = false
+//                                break
+//                            }
+//                            prevIndent = 0
+//                        }
+//                        nestedComments -= 1
+//                    } else {
+//                        break // might be fragment, or syntax error
+//                    }
+//                }
+//                prevIndent = nil
+//            case .space:
+//                if lastTokenWasLinebreak, nestedComments > 0 {
+//                    let indent = token.string.characters.count
+//                    if prevIndent != nil && abs(prevIndent! - indent) >= 2 {
+//                        shouldIndent = false
+//                        break
+//                    }
+//                    prevIndent = indent
+//                }
+//            case .commentBody:
+//                if lastTokenWasLinebreak, nestedComments > 0 {
+//                    if prevIndent != nil && prevIndent! >= 2 {
+//                        shouldIndent = false
+//                        break
+//                    }
+//                    prevIndent = 0
+//                }
+//            default:
+//                break
+//            }
+//            lastTokenWasLinebreak = token.isLinebreak
+//        }
+//        return shouldIndent
+//    }()
 
     options.truncateBlankLines = {
         var truncated = 0, untruncated = 0
@@ -419,90 +421,92 @@ public func inferOptions(from tokens: [Token]) -> FormatOptions {
     options.insertBlankLines = false
     options.removeBlankLines = false
 
-    options.allmanBraces = {
-        var allman = 0, knr = 0
-        formatter.forEach(.startOfScope("{")) { i, _ in
-            // Check this isn't an inline block
-            guard let nextLinebreakIndex = formatter.index(of: .linebreak, after: i),
-                let closingBraceIndex = formatter.index(of: .endOfScope("}"), after: i),
-                nextLinebreakIndex < closingBraceIndex else { return }
-            // Check if brace is wrapped
-            if let prevTokenIndex = formatter.index(of: .nonSpace, before: i),
-                let prevToken = formatter.token(at: prevTokenIndex) {
-                switch prevToken {
-                case .identifier, .keyword, .endOfScope, .operator("?", .postfix), .operator("!", .postfix):
-                    knr += 1
-                case .linebreak:
-                    allman += 1
-                default:
-                    break
-                }
-            }
-        }
-        return allman > knr
-    }()
+    options.allmanBraces = true
+//	{
+//        var allman = 0, knr = 0
+//        formatter.forEach(.startOfScope("{")) { i, _ in
+//            // Check this isn't an inline block
+//            guard let nextLinebreakIndex = formatter.index(of: .linebreak, after: i),
+//                let closingBraceIndex = formatter.index(of: .endOfScope("}"), after: i),
+//                nextLinebreakIndex < closingBraceIndex else { return }
+//            // Check if brace is wrapped
+//            if let prevTokenIndex = formatter.index(of: .nonSpace, before: i),
+//                let prevToken = formatter.token(at: prevTokenIndex) {
+//                switch prevToken {
+//                case .identifier, .keyword, .endOfScope, .operator("?", .postfix), .operator("!", .postfix):
+//                    knr += 1
+//                case .linebreak:
+//                    allman += 1
+//                default:
+//                    break
+//                }
+//            }
+//        }
+//        return allman > knr
+//    }()
 
-    options.ifdefIndent = {
-        var indented = 0, notIndented = 0, outdented = 0
-        formatter.forEach(.startOfScope("#if")) { i, _ in
-            if let indent = formatter.token(at: i - 1), case let .space(string) = indent,
-                !string.isEmpty {
-                // Indented, check next line
-                if let nextLineIndex = formatter.index(of: .linebreak, after: i),
-                    let nextIndex = formatter.index(of: .nonSpaceOrLinebreak, after: nextLineIndex) {
-                    switch formatter.tokens[nextIndex - 1] {
-                    case let .space(innerString):
-                        if innerString.isEmpty {
-                            // Error?
-                            return
-                        } else if innerString == string {
-                            notIndented += 1
-                        } else {
-                            // Assume more indented, as less would be a mistake
-                            indented += 1
-                        }
-                    case .linebreak:
-                        // Could be noindent or outdent
-                        notIndented += 1
-                        outdented += 1
-                    default:
-                        break
-                    }
-                }
-                // Error?
-                return
-            }
-            // Not indented, check next line
-            if let nextLineIndex = formatter.index(of: .linebreak, after: i),
-                let nextIndex = formatter.index(of: .nonSpaceOrLinebreak, after: nextLineIndex) {
-                switch formatter.tokens[nextIndex - 1] {
-                case let .space(string):
-                    if string.isEmpty {
-                        fallthrough
-                    } else if string == formatter.options.indent {
-                        // Could be indent or outdent
-                        indented += 1
-                        outdented += 1
-                    } else {
-                        // Assume more indented, as less would be a mistake
-                        outdented += 1
-                    }
-                case .linebreak:
-                    // Could be noindent or outdent
-                    notIndented += 1
-                    outdented += 1
-                default:
-                    break
-                }
-            }
-            // Error?
-        }
-        if notIndented > indented {
-            return outdented > notIndented ? .outdent : .noIndent
-        } else {
-            return outdented > indented ? .outdent : .indent
-        }
-    }()
+    options.ifdefIndent = .indent
+//	{
+//        var indented = 0, notIndented = 0, outdented = 0
+//        formatter.forEach(.startOfScope("#if")) { i, _ in
+//            if let indent = formatter.token(at: i - 1), case let .space(string) = indent,
+//                !string.isEmpty {
+//                // Indented, check next line
+//                if let nextLineIndex = formatter.index(of: .linebreak, after: i),
+//                    let nextIndex = formatter.index(of: .nonSpaceOrLinebreak, after: nextLineIndex) {
+//                    switch formatter.tokens[nextIndex - 1] {
+//                    case let .space(innerString):
+//                        if innerString.isEmpty {
+//                            // Error?
+//                            return
+//                        } else if innerString == string {
+//                            notIndented += 1
+//                        } else {
+//                            // Assume more indented, as less would be a mistake
+//                            indented += 1
+//                        }
+//                    case .linebreak:
+//                        // Could be noindent or outdent
+//                        notIndented += 1
+//                        outdented += 1
+//                    default:
+//                        break
+//                    }
+//                }
+//                // Error?
+//                return
+//            }
+//            // Not indented, check next line
+//            if let nextLineIndex = formatter.index(of: .linebreak, after: i),
+//                let nextIndex = formatter.index(of: .nonSpaceOrLinebreak, after: nextLineIndex) {
+//                switch formatter.tokens[nextIndex - 1] {
+//                case let .space(string):
+//                    if string.isEmpty {
+//                        fallthrough
+//                    } else if string == formatter.options.indent {
+//                        // Could be indent or outdent
+//                        indented += 1
+//                        outdented += 1
+//                    } else {
+//                        // Assume more indented, as less would be a mistake
+//                        outdented += 1
+//                    }
+//                case .linebreak:
+//                    // Could be noindent or outdent
+//                    notIndented += 1
+//                    outdented += 1
+//                default:
+//                    break
+//                }
+//            }
+//            // Error?
+//        }
+//        if notIndented > indented {
+//            return outdented > notIndented ? .outdent : .noIndent
+//        } else {
+//            return outdented > indented ? .outdent : .indent
+//        }
+//    }()
 
     func wrapMode(for scopes: String..., allowGrouping: Bool) -> WrapMode {
         var beforeFirst = 0, afterFirst = 0, neither = 0

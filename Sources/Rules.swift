@@ -67,7 +67,48 @@ public class FormatRules: NSObject {
     }
 
     /// Rules that are disabled by default
-    public static let disabledByDefault = ["trailingClosures"]
+    public static let disabledByDefault = [
+		"blankLinesAtEndOfScope",
+		"blankLinesBetweenScopes",
+		"consecutiveBlankLines",
+		"consecutiveSpaces",
+		"elseOnSameLine",
+		"fileHeader",
+		"hoistPatternLet",
+		"linebreakAtEndOfFile",
+		"linebreaks",
+		"numberFormatting",
+		"ranges",
+		"redundantBackticks",
+		"redundantGet",
+		"redundantLet",
+		"redundantNilInit",
+		"redundantParens",
+		"redundantPattern",
+		"redundantRawValues",
+		"redundantReturn",
+		"redundantSelf",
+		"redundantVoidReturnType",
+		"semicolons",
+		"spaceAroundBraces",
+		"spaceAroundBrackets",
+		"spaceAroundComments",
+		"spaceAroundGenerics",
+		"spaceAroundOperators",
+		"spaceAroundParens",
+		"spaceInsideBraces",
+		"spaceInsideBrackets",
+		"spaceInsideComments",
+		"spaceInsideGenerics",
+		"spaceInsideParens",
+		"specifiers",
+		"todos",
+		"trailingCommas",
+		"trailingSpace", 
+		"unusedArguments", 
+		"void", 
+		"wrapArguments"
+	]
 
     /// Default rules
     public static let `default` = all(except: disabledByDefault)
