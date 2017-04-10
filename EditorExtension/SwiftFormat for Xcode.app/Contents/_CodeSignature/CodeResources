@@ -152,7 +152,7 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			ArPKlu/q6Su5ckaIKhS7E40R0Bs=
+			F0IysYNDi6KEngB61uBRIgmMRN4=
 			</data>
 			<key>requirement</key>
 			<string>identifier "com.charcoaldesign.SwiftFormat-for-Xcode.SourceEditorExtension" and anchor apple generic and certificate leaf[subject.CN] = "Mac Developer: eren@swiftmedical.io (GGA5863BX8)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
